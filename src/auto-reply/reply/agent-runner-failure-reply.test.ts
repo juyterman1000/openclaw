@@ -225,4 +225,30 @@ describe("buildExternalRunFailureReply", () => {
       }
     }
   });
+
+  it("uses generic copy when useHeartbeatFailureCopy is false even if isHeartbeat is true", () => {
+    const reply = buildExternalRunFailureReply(
+      { message: "test error", error: new Error("test") },
+      { isHeartbeat: true, useHeartbeatFailureCopy: false },
+    );
+    expect(reply.text).not.toContain("heartbeat");
+    expect(reply.isGenericRunnerFailure).toBe(false);
+  });
+
+  it("uses heartbeat copy when useHeartbeatFailureCopy is true", () => {
+    const reply = buildExternalRunFailureReply(
+      { message: "test error", error: new Error("test") },
+      { isHeartbeat: true, useHeartbeatFailureCopy: true },
+    );
+    expect(reply.text).toContain("heartbeat");
+  });
+
+  it("falls back to isHeartbeat when useHeartbeatFailureCopy is undefined", () => {
+    const reply = buildExternalRunFailureReply(
+      { message: "test error", error: new Error("test") },
+      { isHeartbeat: true },
+    );
+    expect(reply.text).toContain("heartbeat");
+  });
 });
+

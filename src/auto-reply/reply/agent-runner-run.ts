@@ -652,6 +652,7 @@ export async function runReplyAgent(
       activeIsNewSession: isNewSession,
       getActiveSessionEntry: () => activeSessionEntry,
       isHeartbeat,
+      useHeartbeatFailureCopy: opts?.useHeartbeatFailureCopy,
       isRestartRecoveryArmed,
       opts: runOpts,
       pendingToolTasks,
@@ -683,6 +684,7 @@ export async function runReplyAgent(
     return await handleReplyAgentRunError(error, {
       resolveVisibleReplyDelivery,
       isHeartbeat,
+      useHeartbeatFailureCopy: opts?.useHeartbeatFailureCopy,
       replyExpectation,
       isRestartRecoveryArmed,
       replyOperation,
