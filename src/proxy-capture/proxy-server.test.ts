@@ -538,27 +538,28 @@ describe("startDebugProxyServer", () => {
       });
       expect(aborted.bodyBytes).toBeGreaterThanOrEqual(64 * 1024);
 
-      await vi.waitFor(async () => {
+      await vi.waitFor(() => {
         expect(origin.state.closedResponses).toBe(1);
         expect(origin.state.finishedResponses).toBe(0);
-        const captureEvents = (await readCaptureEvents(settings.sessionId, 20)).filter(
-          (event) => event.path === "/capture",
-        );
-        const capturedRequest = captureEvents.find((event) => event.kind === "request");
-        expect(capturedRequest).toBeDefined();
-        expect(captureEvents.filter((event) => event.kind === "error")).toEqual([
-          expect.objectContaining({
-            direction: "local",
-            errorText: "Downstream response closed before completion",
-            flowId: capturedRequest?.flowId,
-          }),
-        ]);
-        expect(captureEvents.filter((event) => event.kind === "response")).toEqual([]);
       });
 
       const healthy = await getThroughProxy(proxy.proxyUrl, `${origin.url}/healthy`);
       expect(healthy).toMatchObject({ body: "ok", complete: true, statusCode: 200 });
+      // Shutdown drains asynchronous capture writes before the independent read.
       await proxy.stop();
+      const captureEvents = (await readCaptureEvents(settings.sessionId, 20)).filter(
+        (event) => event.path === "/capture",
+      );
+      const capturedRequest = captureEvents.find((event) => event.kind === "request");
+      expect(capturedRequest).toBeDefined();
+      expect(captureEvents.filter((event) => event.kind === "error")).toEqual([
+        expect.objectContaining({
+          direction: "local",
+          errorText: "Downstream response closed before completion",
+          flowId: capturedRequest?.flowId,
+        }),
+      ]);
+      expect(captureEvents.filter((event) => event.kind === "response")).toEqual([]);
       expect(
         (await readCaptureEvents(settings.sessionId, 20)).filter(
           (event) => event.path === "/healthy" && event.kind === "error",
@@ -590,27 +591,28 @@ describe("startDebugProxyServer", () => {
         statusLine: "HTTP/1.1 200 OK",
       });
 
-      await vi.waitFor(async () => {
+      await vi.waitFor(() => {
         expect(origin.state.closedResponses).toBe(1);
         expect(origin.state.finishedResponses).toBe(0);
-        const captureEvents = (await readCaptureEvents(settings.sessionId, 20)).filter(
-          (event) => event.path === "/capture",
-        );
-        const capturedRequest = captureEvents.find((event) => event.kind === "request");
-        expect(capturedRequest).toBeDefined();
-        expect(captureEvents.filter((event) => event.kind === "error")).toEqual([
-          expect.objectContaining({
-            direction: "local",
-            errorText: expect.any(String),
-            flowId: capturedRequest?.flowId,
-          }),
-        ]);
-        expect(captureEvents.filter((event) => event.kind === "response")).toEqual([]);
       });
 
       const healthy = await getThroughProxy(proxy.proxyUrl, `${origin.url}/healthy`);
       expect(healthy).toMatchObject({ body: "ok", complete: true, statusCode: 200 });
+      // Shutdown drains asynchronous capture writes before the independent read.
       await proxy.stop();
+      const captureEvents = (await readCaptureEvents(settings.sessionId, 20)).filter(
+        (event) => event.path === "/capture",
+      );
+      const capturedRequest = captureEvents.find((event) => event.kind === "request");
+      expect(capturedRequest).toBeDefined();
+      expect(captureEvents.filter((event) => event.kind === "error")).toEqual([
+        expect.objectContaining({
+          direction: "local",
+          errorText: expect.any(String),
+          flowId: capturedRequest?.flowId,
+        }),
+      ]);
+      expect(captureEvents.filter((event) => event.kind === "response")).toEqual([]);
       expect(
         (await readCaptureEvents(settings.sessionId, 20)).filter(
           (event) => event.path === "/healthy" && event.kind === "error",
