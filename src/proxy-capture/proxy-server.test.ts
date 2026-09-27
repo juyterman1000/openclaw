@@ -9,6 +9,7 @@ import net, { Socket, type AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { createDeferredCore } from "../shared/deferred.js";
 import { closeOpenClawStateDatabaseAsync } from "../state/openclaw-state-db-cache.js";
 import type { DebugProxySettings } from "./env.js";
 import { startDebugProxyServer } from "./proxy-server.js";
@@ -236,6 +237,7 @@ async function postThroughProxy(params: {
 }
 
 type StreamingProxyOrigin = {
+  responseClosed: Promise<void>;
   state: {
     closedResponses: number;
     drainWaits: number;
@@ -247,6 +249,7 @@ type StreamingProxyOrigin = {
 };
 
 async function startStreamingProxyOrigin(responseBodyBytes: number): Promise<StreamingProxyOrigin> {
+  const responseClosed = createDeferredCore();
   const state = {
     closedResponses: 0,
     drainWaits: 0,
@@ -271,6 +274,7 @@ async function startStreamingProxyOrigin(responseBodyBytes: number): Promise<Str
     });
     res.on("close", () => {
       state.closedResponses++;
+      responseClosed.resolve();
     });
     res.on("finish", () => {
       state.finishedResponses++;
@@ -302,6 +306,7 @@ async function startStreamingProxyOrigin(responseBodyBytes: number): Promise<Str
   });
   const address = server.address() as AddressInfo;
   return {
+    responseClosed: responseClosed.promise,
     state,
     stop: async () =>
       await new Promise<void>((resolve, reject) => {
@@ -538,14 +543,12 @@ describe("startDebugProxyServer", () => {
       });
       expect(aborted.bodyBytes).toBeGreaterThanOrEqual(64 * 1024);
 
-      await vi.waitFor(() => {
-        expect(origin.state.closedResponses).toBe(1);
-        expect(origin.state.finishedResponses).toBe(0);
-      });
+      await origin.responseClosed;
+      expect(origin.state.closedResponses).toBe(1);
+      expect(origin.state.finishedResponses).toBe(0);
 
       const healthy = await getThroughProxy(proxy.proxyUrl, `${origin.url}/healthy`);
       expect(healthy).toMatchObject({ body: "ok", complete: true, statusCode: 200 });
-      // Shutdown drains asynchronous capture writes before the independent read.
       await proxy.stop();
       const captureEvents = (await readCaptureEvents(settings.sessionId, 20)).filter(
         (event) => event.path === "/capture",
@@ -591,14 +594,12 @@ describe("startDebugProxyServer", () => {
         statusLine: "HTTP/1.1 200 OK",
       });
 
-      await vi.waitFor(() => {
-        expect(origin.state.closedResponses).toBe(1);
-        expect(origin.state.finishedResponses).toBe(0);
-      });
+      await origin.responseClosed;
+      expect(origin.state.closedResponses).toBe(1);
+      expect(origin.state.finishedResponses).toBe(0);
 
       const healthy = await getThroughProxy(proxy.proxyUrl, `${origin.url}/healthy`);
       expect(healthy).toMatchObject({ body: "ok", complete: true, statusCode: 200 });
-      // Shutdown drains asynchronous capture writes before the independent read.
       await proxy.stop();
       const captureEvents = (await readCaptureEvents(settings.sessionId, 20)).filter(
         (event) => event.path === "/capture",
