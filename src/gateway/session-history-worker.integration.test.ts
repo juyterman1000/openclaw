@@ -415,8 +415,7 @@ it("waits for a missing projection and serves the original history request", asy
       )
       .run(target.sessionId);
 
-    // Exercise real projection recovery without racing worker startup against the
-    // request deadline. The runtime unit tests cover deadline expiry and cancellation.
+    // Runtime tests own the recovery deadline; real worker startup must not spend it here.
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     try {
       const page = await readChatHistoryPage({
