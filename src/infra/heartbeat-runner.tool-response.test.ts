@@ -5,6 +5,7 @@ import {
   GENERIC_EXTERNAL_RUN_FAILURE_TEXT,
   HEARTBEAT_EXTERNAL_RUN_FAILURE_TEXT,
 } from "../agents/failover/user-copy.js";
+import type { GetReplyOptions } from "../auto-reply/get-reply-options.types.js";
 import {
   createHeartbeatToolResponsePayload,
   type HeartbeatToolResponse,
@@ -185,20 +186,12 @@ describe("runHeartbeatOnce heartbeat response tool", () => {
     return context as { Body?: string; SessionKey?: string };
   }
 
-  function replyOptions(replySpy: ReturnType<typeof vi.fn>): {
-    enableHeartbeatTool?: boolean;
-    forceHeartbeatTool?: boolean;
-    sourceReplyDeliveryMode?: string;
-  } {
+  function replyOptions(replySpy: ReturnType<typeof vi.fn>): GetReplyOptions {
     const options = replyCall(replySpy)[1];
     if (!options || typeof options !== "object") {
       throw new Error("Expected reply options");
     }
-    return options as {
-      enableHeartbeatTool?: boolean;
-      forceHeartbeatTool?: boolean;
-      sourceReplyDeliveryMode?: string;
-    };
+    return options as GetReplyOptions;
   }
 
   async function runWithToolResponse(response: HeartbeatToolResponse) {
