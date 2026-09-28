@@ -231,7 +231,7 @@ describe("buildExternalRunFailureReply", () => {
       { message: "test error", error: new Error("test") },
       { isHeartbeat: true, useHeartbeatFailureCopy: false },
     );
-    expect(reply.text).not.toContain("heartbeat");
+    expect(reply.text).toBe(GENERIC_EXTERNAL_RUN_FAILURE_TEXT);
     expect(reply.isGenericRunnerFailure).toBe(false);
   });
 
@@ -240,7 +240,7 @@ describe("buildExternalRunFailureReply", () => {
       { message: "test error", error: new Error("test") },
       { isHeartbeat: true, useHeartbeatFailureCopy: true },
     );
-    expect(reply.text).toContain("heartbeat");
+    expect(reply.text).toBe(HEARTBEAT_EXTERNAL_RUN_FAILURE_TEXT);
   });
 
   it("falls back to isHeartbeat when useHeartbeatFailureCopy is undefined", () => {
@@ -248,6 +248,6 @@ describe("buildExternalRunFailureReply", () => {
       { message: "test error", error: new Error("test") },
       { isHeartbeat: true },
     );
-    expect(reply.text).toContain("heartbeat");
+    expect(reply.text).toBe(HEARTBEAT_EXTERNAL_RUN_FAILURE_TEXT);
   });
 });
