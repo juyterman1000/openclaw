@@ -10,11 +10,6 @@ import { seedMainSessionStore, withTempHeartbeatSandbox } from "./heartbeat-runn
 const TELEGRAM_TARGET = "-1001234567890";
 const TYPING_INTERVAL_SECONDS = 2;
 
-// Typing keepalive re-sends sendTyping every interval while a run is in flight,
-// so a run slower than the 6s heartbeat default adds calls the exact-count
-// assertions below do not expect. Pin the interval past any run's duration.
-const TYPING_KEEPALIVE_INTERVAL_SECONDS = 3600;
-
 function installHeartbeatTypingPlugin(params: {
   sendTyping: NonNullable<NonNullable<ChannelPlugin["heartbeat"]>["sendTyping"]>;
   clearTyping?: NonNullable<ChannelPlugin["heartbeat"]>["clearTyping"];
@@ -50,7 +45,6 @@ function createHeartbeatConfig(params: {
       defaults: {
         workspace: params.tmpDir,
         heartbeat: { every: "5m", target: "telegram" },
-        typingIntervalSeconds: TYPING_KEEPALIVE_INTERVAL_SECONDS,
         ...params.agents?.defaults,
       },
     },
