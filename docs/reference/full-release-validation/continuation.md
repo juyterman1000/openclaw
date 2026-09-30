@@ -26,7 +26,9 @@ Inspect or continue an existing parent:
 
 ```bash
 pnpm frv status --run <parent-run-id> --json
+pnpm frv watch --run <parent-run-id> [--once] [--json]
 pnpm frv rerun --run <parent-run-id> --job "normalCi:checks-node-agentic-control-plane-agent-chat"
+pnpm frv rerun --run <parent-run-id> --child <child-key|run-id> [--max-attempts 2]
 pnpm frv continue --failed --run <parent-run-id>
 pnpm frv verify --run <successful-parent-run-id>
 pnpm frv prioritize --restore <record> [--dry-run]
@@ -42,6 +44,19 @@ no longer pauses CI or supporting workflows.
 then uses GitHub's job-rerun API on the job's accepted attempt. GitHub also
 reruns dependent jobs. Other failures stay visible and require their own retry;
 a targeted retry never declares the parent recovered while blockers remain.
+
+`watch` resolves child runs from the parent's `Dispatched <workflow>: <url>
+(attempt N)` dispatch-job log lines and reports each attempt transition and
+failed job once, with runner labels. Transient GitHub failures retry on the next
+poll. A local state file under `$TMPDIR/openclaw-frv/` lets a restarted watch
+resume without repeating events.
+
+`rerun --child` waits for one failed child, sends exactly one
+rerun-failed-jobs request, confirms the new attempt has no duplicate jobs, and
+records an audit line. It refuses children past `--max-attempts` (default 2,
+which allows one rerun). When a failed consumer is bound to a green producer's
+run attempt, it reruns that producer and its dependents instead. It returns
+after the new attempt starts; `continue --failed` still owns the final reseal.
 
 `continue --failed` reruns each failed child's jobs as soon as that child is
 terminal, while sibling children and the original parent may still run. It
@@ -161,8 +176,7 @@ FRV and publication workflow identities independently, then joins supported
 manifest recorded by that publisher. An original plan from attempt 1 can bind a
 final validation manifest from attempt 2. The two attempts are reported
 separately; neither is silently replaced with the latest attempt.
-Linked children retain their own observed tooling SHA/ref. The recorded normal
-ClawHub ref can differ from an alpha publisher's ref.
+Linked children retain their own observed tooling SHA/ref.
 
 This view reports observations, **not release authorization or current registry
 visibility**. Writer selection, verification selection, job conclusions,
