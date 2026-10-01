@@ -1046,7 +1046,7 @@ describe("worker placement dispatch reclaim", () => {
           return await Promise.race([
             harness.service.reclaim(REQUEST),
             new Promise<"blocked">((resolve) => {
-              timer = setTimeout(() => resolve("blocked"), 5_000);
+              timer = setTimeout(() => resolve("blocked"), 1_000);
             }),
           ]);
         } finally {

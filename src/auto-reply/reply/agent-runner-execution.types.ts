@@ -143,7 +143,6 @@ export type AgentTurnParams = {
   shouldEmitToolOutput: () => boolean;
   pendingToolTasks: Set<Promise<void>>;
   isHeartbeat: boolean;
-  useHeartbeatFailureCopy?: boolean;
   sessionKey?: string;
   runtimePolicySessionKey?: string;
   getActiveSessionEntry: () => SessionEntry | undefined;

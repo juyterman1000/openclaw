@@ -254,7 +254,7 @@ describe("swarm tools integration", () => {
       completionResolvers.get(gatewayRunId ?? "")?.();
       const result = await wait.execute("wait", {
         ids: [...pending],
-        timeoutSeconds: 5,
+        timeoutSeconds: 1,
       });
       const details = result.details as {
         completed: Array<{ runId: string; result: string; structured?: unknown }>;

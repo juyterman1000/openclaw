@@ -203,7 +203,7 @@ describe("cron service run admission", () => {
 
     const timer = onTimer(state);
     try {
-      await vi.waitFor(() => expect(active).toBe(4), { timeout: 5_000 });
+      await vi.waitFor(() => expect(active).toBe(4));
       releaseRunners.resolve();
       await timer;
 

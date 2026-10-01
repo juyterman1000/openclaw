@@ -63,8 +63,7 @@ export async function handleAgentExecutionError(params: {
 }): Promise<ErrorAction> {
   const turn = params.turn;
   const err = params.error;
-  const useHeartbeatFailureCopy =
-    turn.opts?.useHeartbeatFailureCopy ?? turn.useHeartbeatFailureCopy;
+  const useHeartbeatFailureCopy = turn.opts?.useHeartbeatFailureCopy;
   // A failed candidate leaves its backstop pending; settlement takes it before later work.
   // This keeps session-override failures from being mislabeled as model failures.
   const postCompactionModelFailure =
